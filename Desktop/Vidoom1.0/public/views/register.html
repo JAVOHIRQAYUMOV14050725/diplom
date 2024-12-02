@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link id="icon" rel="shortcut icon" href="../images/logo.svg" />
+    <link rel="stylesheet" href="../css/register.css">
+    <link rel="stylesheet" href="../css/landing.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <title>Rigisteration</title>
+</head>
+
+<body>
+
+    <div class="">
+        <header class="site-header">
+            <div class="container">
+                <div class="site-header-inner">
+                    <div class="brand header-brand header-center">
+                        <div class="m-0">
+                            <a href="/">
+                                <img class="header-logo-image" src="../images/logo.svg" alt="mirotalksfu-webrtc-logo" />
+                            </a>
+                        </div>
+                        <div class="account-btn">
+                            <button id="login">Login</button>
+                            <button id="signup">Sign Up</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+        <section class="hero reveal-from-bottom">
+            <div class="container">
+                <div id="register-form" class="">
+                    <section class="pricing ">
+                        <div class="card-container">
+                            <div class="card">
+                                <div class="face face1 basic-card">
+                                    <div class="content">
+                                        <h3>Basic</h3>
+                                    </div>
+                                </div>
+                                <div class="face face2">
+                                    <div class="content">
+                                        <ul>
+                                            <li>$9/oy</li>
+                                            <li>Max. 10 ta user</li>
+                                            <li>Description @#$%$#$</li>
+                                        </ul>
+                                        <button id="basicBtn" value="basic">Buy Now</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card">
+                                <div class="face face1 pro-card">
+                                    <div class="content">
+                                        <h3>Pro</h3>
+                                    </div>
+                                </div>
+                                <div class="face face2">
+                                    <div class="content">
+                                        <ul>
+                                            <li>$29/oy</li>
+                                            <li>Max. 25 ta user</li>
+                                            <li>Description @#$%$#$</li>
+                                        </ul>
+                                        <button id="proBtn" value="pro">Buy Now</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card">
+                                <div class="face face1 enterprise-card">
+                                    <div class="content">
+                                        <h3>Enterprise</h3>
+                                    </div>
+                                </div>
+                                <div class="face face2">
+                                    <div class="content">
+                                        <ul>
+                                            <li>$89/oy</li>
+                                            <li>Max. 70 ta user</li>
+                                            <li>Description @#$%$#$</li>
+                                        </ul>
+                                        <button id="enterpriseBtn" value="enterprise">Buy Now</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section id="registerSection" class="d-none">
+                        <div class="container">
+                            <div style="display: flex; justify-content: center; width: 100%;" class="hero-copy">
+                                <div id="loginForm">
+                                    <h4>Регистрация</h4>
+                                    <br />
+                                    <div class="mb-12">
+                                        <input class="form-input" type="text" id="name" placeholder="Имя" maxlength="36"
+                                            required />
+                                    </div>
+                                    <br>
+                                    <div class="mb-12">
+                                        <input class="form-input" type="text" id="surname" placeholder="Фамилия"
+                                            maxlength="36" required />
+                                    </div>
+                                    <br>
+                                    <div class="mb-12">
+                                        <input class="form-input" type="email" id="email"
+                                            placeholder="Электронная почта" maxlength="36" required />
+                                    </div>
+                                    <br />
+                                    <div class="mb-12">
+                                        <input class="form-input" type="number" id="phone_number"
+                                            placeholder="Номер телефона" maxlength="36" required />
+                                    </div>
+                                    <br />
+                                    <!-- Checkbox for legal entity -->
+                                    <div class="mb-12">
+                                        <label>
+                                            <input type="checkbox" id="legalEntityCheckbox" /> Юридическое лицо
+                                        </label>
+                                    </div>
+                                    <!-- INN input, initially hidden -->
+                                    <div class="mb-12" id="innField" style="display: none;">
+                                        <br>
+                                        <input class="form-input" type="text" id="inn" placeholder="ИНН"
+                                            maxlength="12" />
+                                    </div>
+                                    <div class="mt-24 mb-32">
+                                        <button id="nextStep" class="button button-primary button-block">
+                                            Submit
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section id="paymentSection" class="d-none">
+                        <div class="container">
+                            <div style="display: flex; justify-content: center; width: 100%;" class="hero-copy">
+                                <div id="loginForm">
+                                    <h4>Оплата</h4>
+                                    <br />
+                                    <div class="mb-12">
+                                        <input class="form-input" type="text" id="amount" maxlength="36" readonly required />
+                                    </div>
+                                    <br>
+                                    <div class="mb-12">
+                                        <input class="form-input" type="text" id="card-number" placeholder="Номер карты"
+                                            maxlength="36" required />
+                                    </div>
+                                    <br>
+                                    <div class="mb-12">
+                                        <input class="form-input" type="text" id="mm-yy" placeholder="MM/YY" maxlength="36" required />
+                                    </div>
+                                    <br />
+                                    <div class="mt-24 mb-32">
+                                        <button id="submitBtn" class="button button-primary button-block">
+                                            Submit
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+        </section>
+    </div>
+    
+
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="../js/Landing.js"></script>
+    <script src="../js/landingUrlDirect.js"></script>
+    <script src="../js/register.js"></script>
+</body>
+
+</html>
