@@ -22,16 +22,15 @@ function removeClient(id) {
     clients.delete(id);
 }
 
-function pushEvent(type, row) {
-    // 'row' must be object; frontend expects JSON.parse(e.data) -> { row }
+function pushEvent(type, data) {
     for (const { res } of clients.values()) {
         try {
             res.write(
                 `event: ${type}\n` +
-                `data: ${JSON.stringify({ row })}\n\n`
+                `data: ${JSON.stringify({ row: data })}\n\n` // ✅ bitta { row }
             );
         } catch (e) {
-            // ignore per-client write errors
+            // ignore
         }
     }
 }

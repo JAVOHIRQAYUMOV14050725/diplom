@@ -7,7 +7,8 @@
   
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
   
@@ -38,6 +39,7 @@
           animation: {
             'float': 'float 6s ease-in-out infinite',
             'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            'fade-in': 'fadeIn 0.4s ease-out forwards',
           },
           keyframes: {
             float: {
@@ -92,22 +94,15 @@
     .text-glow {
       text-shadow: 0 0 20px rgba(139, 92, 246, 0.5);
     }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
   </style>
 </head>
 <body class="min-h-screen selection:bg-neon-purple selection:text-white overflow-x-hidden">
 
-  <!-- Background Ambient Glows -->
   <div class="fixed top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
     <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/20 rounded-full blur-[120px] animate-pulse-slow"></div>
     <div class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-600/20 rounded-full blur-[120px] animate-pulse-slow" style="animation-delay: 2s;"></div>
   </div>
 
-  <!-- NAVIGATION -->
   <nav class="sticky top-4 z-50 px-4 md:px-6 mb-8">
     <div class="glass-panel rounded-2xl px-6 py-4 flex justify-between items-center max-w-7xl mx-auto">
       <div class="flex items-center gap-4">
@@ -140,14 +135,13 @@
 
   <main class="max-w-7xl mx-auto px-4 md:px-6 pb-12 space-y-8">
     
-    <!-- STATS OVERVIEW -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
       <div class="glass-panel p-6 rounded-3xl relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300">
         <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
           <i data-lucide="users" class="w-24 h-24 text-white"></i>
         </div>
         <div class="relative z-10">
-          <p class="text-sm text-slate-400 font-medium mb-1">Umumiy Foydalanuvchilar</p>
+          <p class="text-sm text-slate-400 font-medium mb-1">Foydalanuvchilar</p>
           <h3 id="stat-users-count" class="text-4xl font-bold text-white font-mono tracking-tighter">0</h3>
         </div>
       </div>
@@ -167,6 +161,16 @@
 
       <div class="glass-panel p-6 rounded-3xl relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300">
         <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+          <i data-lucide="users-round" class="w-24 h-24 text-cyan-400"></i>
+        </div>
+        <div class="relative z-10">
+          <p class="text-sm text-slate-400 font-medium mb-1">Ichkarida</p>
+          <h3 id="stat-inside-count" class="text-4xl font-bold text-cyan-400 font-mono tracking-tighter">0</h3>
+        </div>
+      </div>
+
+      <div class="glass-panel p-6 rounded-3xl relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300">
+        <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
           <i data-lucide="shield-alert" class="w-24 h-24 text-rose-500"></i>
         </div>
         <div class="relative z-10">
@@ -174,11 +178,19 @@
           <h3 id="stat-denied-count" class="text-4xl font-bold text-rose-400 font-mono tracking-tighter">0</h3>
         </div>
       </div>
+      <div class="lg:col-span-4 glass-panel rounded-3xl p-6">
+  <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
+    <i data-lucide="ban" class="text-rose-500"></i>
+    Bloklangan Kartalar
+  </h2>
+  <div id="blocked-list" class="space-y-3 max-h-96 overflow-y-auto">
+    <!-- Dinamik -->
+  </div>
+</div>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
       
-      <!-- LEFT SIDE -->
       <div class="lg:col-span-8 space-y-8">
         <div class="glass-panel p-8 rounded-3xl relative overflow-hidden">
           <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500"></div>
@@ -216,16 +228,45 @@
           </div>
         </div>
 
-        <!-- USERS TABLE -->
+        <div class="glass-panel p-6 rounded-3xl">
+          <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+            <h3 class="text-sm text-slate-400">Bugungi kirishlar grafikasi</h3>
+            <div class="flex gap-2">
+              <input type="date" id="selectedDate" class="glass-input px-3 py-1.5 rounded-lg text-xs">
+              <button onclick="reloadChart()" class="bg-blue-600 px-4 py-1.5 rounded-lg text-xs font-medium hover:bg-blue-500 transition">Qo‘llash</button>
+            </div>
+          </div>
+          <div class="h-[250px]">
+            <canvas id="entryChart"></canvas>
+          </div>
+        </div>
+
         <div class="glass-panel rounded-3xl overflow-hidden min-h-[400px]">
           <div class="p-6 border-b border-white/5 flex justify-between items-center bg-white/5">
-            <h2 class="text-lg font-bold flex items-center gap-2 text-white">
+            <h2 class="text-lg font-bold flex items-center gap-3 text-white">
               <i data-lucide="database" class="text-blue-400"></i>
               <span>Baza Reyestri</span>
+              <select id="roleFilter" onchange="loadUsers()" class="glass-input rounded-xl px-3 py-1.5 text-xs">
+                <option value="">Barchasi</option>
+                <option value="student">Talaba</option>
+                <option value="teacher">O‘qituvchi</option>
+                <option value="staff">Xodim</option>
+                <option value="admin">Admin</option>
+              </select>
             </h2>
-            <button onclick="loadUsers()" class="p-2 rounded-lg hover:bg-white/5 text-slate-400 hover:text-white transition group">
-              <i data-lucide="refresh-cw" class="w-5 h-5 group-hover:rotate-180 transition-transform duration-500"></i>
-            </button>
+        <button
+  type="button"
+  onclick="loadUsers()"
+  title="Yangilash"
+  aria-label="Foydalanuvchilarni yangilash"
+  class="p-2 rounded-lg hover:bg-white/5 text-slate-400 hover:text-white transition group"
+>
+  <i
+    data-lucide="refresh-cw"
+    class="w-5 h-5 group-hover:rotate-180 transition-transform duration-500"
+  ></i>
+</button>
+
           </div>
           
           <div class="overflow-x-auto">
@@ -243,9 +284,8 @@
           </div>
         </div>
       </div>
-
-      <!-- RIGHT SIDE: LOGS -->
-      <div class="lg:col-span-4">
+      
+      <div class="lg:col-span-4 space-y-4">
         <div class="glass-panel rounded-3xl overflow-hidden sticky top-24 border-t-4 border-t-emerald-500 flex flex-col h-[calc(100vh-8rem)]">
           <div class="p-5 bg-gradient-to-b from-emerald-500/10 to-transparent border-b border-white/5 flex justify-between items-center">
             <h2 class="text-white font-bold flex items-center gap-2 text-lg">
@@ -255,7 +295,14 @@
               </span>
               Jonli Monitoring
             </h2>
-            <button onclick="clearLogs()" class="text-[10px] uppercase tracking-wider text-slate-500 hover:text-white border border-slate-700 px-2 py-1 rounded">Tozalash</button>
+            <div class="flex items-center gap-2">
+              <select id="logRoleFilter" class="glass-input text-[10px] px-2 py-1 rounded-md">
+                <option value="">Filtr</option>
+                <option value="student">Talaba</option>
+                <option value="teacher">O'qituvchi</option>
+              </select>
+              <button onclick="clearLogs()" class="text-[10px] uppercase tracking-wider text-slate-500 hover:text-white border border-slate-700 px-2 py-1 rounded">Tozalash</button>
+            </div>
           </div>
           <div id="logs-container" class="flex-1 overflow-y-auto p-4 space-y-3"></div>
         </div>
@@ -264,7 +311,6 @@
     </div>
   </main>
 
-  <!-- TOAST CONTAINER -->
   <div id="toast-container" class="fixed bottom-6 right-6 z-[9999] flex flex-col gap-3 pointer-events-none"></div>
 
 <script>
@@ -272,17 +318,26 @@
   const API = '/api';
   const RFID_API = `${API}/rfid`;
 
-  // --- Counters ---
+  // --- Global State ---
   let currentLogsCount = 0;
-  let deniedCount = 0;
+  let insideCount = 0;
+  let entryChart;
+  let chartData = new Array(24).fill(0);
 
-  // --- UI: Show Toast ---
+  const roleStyles = {
+    admin: 'border-rose-500/30 text-rose-400 bg-rose-500/10',
+    teacher: 'border-blue-500/30 text-blue-400 bg-blue-500/10',
+    student: 'border-emerald-500/30 text-emerald-400 bg-emerald-500/10',
+    staff: 'border-cyan-500/30 text-cyan-400 bg-cyan-500/10',
+  };
+
+  // --- UI Helpers ---
   function showToast(message, type = "success") {
     const container = document.getElementById('toast-container');
     const toast = document.createElement('div');
     const bgColor = type === "success" ? "bg-emerald-500" : "bg-rose-500";
     
-    toast.className = `${bgColor} text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 animate-bounce pointer-events-auto min-w-[300px]`;
+    toast.className = `${bgColor} text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 animate-fade-in pointer-events-auto min-w-[300px] mb-2`;
     toast.innerHTML = `
       <i data-lucide="${type === 'success' ? 'check-circle' : 'alert-circle'}" class="w-5 h-5"></i>
       <span class="font-medium">${message}</span>
@@ -292,106 +347,118 @@
     lucide.createIcons();
     
     setTimeout(() => {
-      toast.classList.remove('animate-bounce');
       toast.classList.add('opacity-0', 'translate-x-full', 'transition-all', 'duration-500');
       setTimeout(() => toast.remove(), 500);
     }, 3000);
   }
 
-  // --- SSE Setup ---
-  function setupSSE() {
-    const es = new EventSource(`${RFID_API}/stream`);
+  function animateValue(id, start, end, duration) {
+    const obj = document.getElementById(id);
+    if (!obj) return;
+    let startTimestamp = null;
+    const step = (timestamp) => {
+      if (!startTimestamp) startTimestamp = timestamp;
+      const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+      obj.innerText = Math.floor(progress * (end - start) + start);
+      if (progress < 1) window.requestAnimationFrame(step);
+    };
+    window.requestAnimationFrame(step);
+  }
 
-    es.addEventListener('log', e => {
-      try {
-        const { row } = JSON.parse(e.data);
-        appendLog(row);
-      } catch (err) { console.error('Log error', err); }
-    });
+  // --- SSE Setup ---
+  let es;
+  function setupSSE() {
+    if (es) es.close();
+    es = new EventSource(`${RFID_API}/stream`);
+
+ es.addEventListener('log', e => {
+  try {
+    const { row } = JSON.parse(e.data);
+    appendLog(row);
+  } catch (err) { console.error('SSE Log parse error', err); }
+});
+
+es.addEventListener('inside', e => {
+  try {
+    const { delta } = JSON.parse(e.data);
+
+    const old = Number(insideCount) || 0;
+    insideCount = old + Number(delta || 0);
+
+    animateValue("stat-inside-count", old, insideCount, 300);
+  } catch (err) {
+    console.error('SSE Inside error', err);
+  }
+});
+
 
     es.addEventListener('denied', e => {
+  try {
+    const { row } = JSON.parse(e.data);
+    row.status = 'denied'; // kerakli, lekin siz allaqachon shunday qilyapsiz
+    appendLog(row);
+    showToast(`OGOHLANTIRISH: Notanish karta! UID: ${row.uid}`, "error");
+    
+    // ✅ ASOSIY O'ZGARISH: statistikani qayta hisoblash
+    recalculateDeniedCount();
+    
+  } catch (err) { 
+    console.error('SSE Denied error', err); 
+  }
+});
+
+    es.addEventListener('chart-entry', e => {
       try {
-        const { row } = JSON.parse(e.data);
-        row.status = 'denied';
-        appendLog(row);
-        showToast(`OGOHLANTIRISH: Notanish karta! UID: ${row.uid}`, "error");
-      } catch (err) { console.error('Denied error', err); }
+        const { hour } = JSON.parse(e.data);
+        if (entryChart) {
+          entryChart.data.datasets[0].data[hour]++;
+          entryChart.update();
+        }
+      } catch (err) { console.error('SSE Chart error', err); }
     });
 
     es.onerror = () => {
       es.close();
-      setTimeout(setupSSE, 3000);
+      setTimeout(setupSSE, 5000);
     };
   }
 
-  // --- Test Scan ---
-  async function testScan() {
-    const uidInput = document.getElementById('testUid');
-    const uid = uidInput.value.trim();
-    if (!uid) return showToast("UID kiriting", "error");
-
-    try {
-      const r = await fetch(RFID_API, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ uid })
-      });
-
-      if (!r.ok) {
-        const payload = await safeJson(r);
-        showToast(payload?.error || 'Rad etildi', "error");
-      } else {
-        showToast("Muvaffaqiyatli skanerlandi", "success");
-        uidInput.value = '';
-      }
-    } catch (e) {
-      showToast("API xatosi", "error");
-    }
-  }
-
-  // Helper
-  async function safeJson(resp) {
-    try { return await resp.json(); } catch (e) { return null; }
-  }
-
-  // --- Users Logic ---
+  // --- Core Functions ---
   async function loadUsers() {
     const tbody = document.getElementById('users-tbody');
     tbody.innerHTML = `<tr><td colspan="4" class="p-12 text-center text-slate-500 animate-pulse">Yuklanmoqda...</td></tr>`;
 
     try {
       const r = await fetch(`${API}/users`);
-      const payload = await safeJson(r);
+      const payload = await r.json();
       const users = Array.isArray(payload) ? payload : (payload?.data || []);
+      const roleFilter = document.getElementById('roleFilter').value;
+      const filtered = roleFilter ? users.filter(u => u.role === roleFilter) : users;
 
-      animateValue("stat-users-count", parseInt(document.getElementById('stat-users-count').innerText) || 0, users.length, 500);
+      animateValue("stat-users-count", 0, users.length, 500);
 
       tbody.innerHTML = '';
-      if (users.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-slate-600 italic">Baza bo'sh</td></tr>`;
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-slate-600 italic">Ma'lumot topilmadi</td></tr>`;
         return;
       }
 
-      users.forEach((u, i) => {
+      filtered.forEach((u, i) => {
         const tr = document.createElement('tr');
-        tr.className = "hover:bg-white/5 transition-colors group";
+        tr.className = "hover:bg-white/5 transition-colors group opacity-0";
         tr.style.animation = `fadeIn 0.4s ease-out forwards ${i * 0.05}s`;
-        tr.style.opacity = '0';
-
-        const roleColor = u.role === 'admin' ? 'rose' : (u.role === 'teacher' ? 'blue' : 'emerald');
-
         tr.innerHTML = `
           <td class="px-6 py-4 font-mono text-xs text-slate-400 group-hover:text-white">
             <span class="bg-white/5 px-2 py-1 rounded border border-white/10">${u.uid}</span>
           </td>
           <td class="px-6 py-4 font-medium text-slate-200">${u.name || 'Noma\'lum'}</td>
           <td class="px-6 py-4">
-            <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase border border-${roleColor}-500/30 text-${roleColor}-400 bg-${roleColor}-500/10">
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase border ${roleStyles[u.role] || 'border-slate-500 text-slate-400'}">
               ${u.role || 'GUEST'}
             </span>
           </td>
           <td class="px-6 py-4 text-right">
-            <button onclick="deleteUser(${u.id})" class="text-slate-500 hover:text-rose-500 p-2 rounded-lg opacity-0 group-hover:opacity-100 transition-all">
+            <button onclick="deleteUser(${u.id})" class="text-slate-500 hover:text-rose-500 p-2 rounded-lg group-hover:opacity-100 transition-all">
               <i data-lucide="trash-2" class="w-4 h-4"></i>
             </button>
           </td>
@@ -410,7 +477,7 @@
     const roleInp = document.getElementById('role');
 
     const data = { uid: uidInp.value.trim(), name: nameInp.value.trim(), role: roleInp.value };
-    if (!data.uid) return showToast("UID shart", "error");
+    if (!data.uid || !data.name || !data.role) return showToast("Barcha maydonlarni to'ldiring", "error");
 
     try {
       const res = await fetch(`${API}/users`, {
@@ -418,130 +485,269 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
       });
-
       if (res.ok) {
-        showToast("Qo'shildi");
+        showToast("Foydalanuvchi qo'shildi");
         uidInp.value = ''; nameInp.value = ''; roleInp.value = '';
         loadUsers();
       } else {
-        const err = await safeJson(res);
-        showToast(err?.error || "Xatolik", "error");
+        const err = await res.json();
+        showToast(err?.error || "Xatolik yuz berdi", "error");
       }
     } catch (e) { showToast("Tarmoq xatosi", "error"); }
   }
 
   async function deleteUser(id) {
-    if (!confirm("O'chirilsinmi?")) return;
+    if (!confirm("O'chirmoqchimisiz?")) return;
     try {
       const res = await fetch(`${API}/users/${id}`, { method: 'DELETE' });
       if (res.ok) { showToast("O'chirildi"); loadUsers(); }
     } catch (e) { showToast("Xatolik", "error"); }
   }
 
-  function appendLog(log) {
-    const container = document.getElementById('logs-container');
-    const time = new Date().toLocaleTimeString('uz-UZ', { hour12: false });
+  async function recalculateDeniedCount() {
+  try {
+    const r = await fetch(`${RFID_API}/logs?limit=200`);
+    const payload = await r.json();
+    const logs = payload?.ok && Array.isArray(payload.data) ? payload.data : [];
 
-    const isDenied = log.status === 'denied';
-    const isExit = log.action === 'exit';
-const isEntry = log.action === 'entry';
+    // ✅ Faqat HAYOTIY rad etilganlar: ro'yxatdan o'tmagan, lekin hali bloklangan emas
+    const deniedCount = logs.filter(log => 
+        log.status === 'denied' &&
+        log.note.includes('card_not_registered') &&
+        !log.note.includes('blocked') &&   // 'blocked' so'zi bor bo'lsa — bloklangan
+         log.blocked_at  == null                  // blocked_uids.jadvalida blocked_at bor bo'lsa — bloklangan
+    ).length;
 
-    if (isDenied) {
-      deniedCount++;
-      animateValue("stat-denied-count", parseInt(document.getElementById('stat-denied-count').innerText) || 0, deniedCount, 300);
-    } else {
-if (!isDenied && log.action === 'entry') {
-  currentLogsCount++;
-  animateValue(
-    "stat-entries-count",
-    parseInt(document.getElementById('stat-entries-count').innerText) || 0,
-    currentLogsCount,
-    300
-  );
+    // Animatsiya bilan yangilash
+    const old = parseInt(document.getElementById('stat-denied-count').textContent) || 0;
+    if (old !== deniedCount) {
+      animateValue("stat-denied-count", old, deniedCount, 300);
+    }
+  } catch (err) {
+    console.error('Failed to recalculate denied count', err);
+  }
 }
-      animateValue("stat-entries-count", parseInt(document.getElementById('stat-entries-count').innerText) || 0, currentLogsCount, 300);
-      const bar = document.getElementById('entries-bar');
-      bar.style.width = Math.min((currentLogsCount / 100) * 100, 100) + '%';
+
+ function appendLog(log) {
+
+  const data = log.row || log;
+  
+  const filter = document.getElementById('logRoleFilter').value;
+  if (filter && data.role !== filter) return;
+
+  const container = document.getElementById('logs-container');
+  const time = new Date().toLocaleTimeString('uz-UZ', { hour12: false });
+  const isDenied = data.status === 'denied';
+  const isExit = data.action === 'exit';
+
+  const logDiv = document.createElement('div');
+  const statusClass = isDenied 
+    ? 'border-rose-500 bg-rose-500/5' 
+    : isExit 
+      ? 'border-blue-500 bg-blue-500/5' 
+      : 'border-emerald-500 bg-emerald-500/5';
+  
+  logDiv.className = `p-3 rounded-xl border-l-4 ${statusClass} animate-fade-in`;
+  logDiv.innerHTML = `
+    <div class="flex justify-between items-start">
+      <div class="flex items-center gap-3">
+        <i data-lucide="${isDenied ? 'shield-alert' : isExit ? 'log-out' : 'log-in'}" 
+           class="w-4 h-4 ${isDenied ? 'text-rose-400' : isExit ? 'text-blue-400' : 'text-emerald-400'}"></i>
+        <div>
+          <h4 class="text-sm font-semibold text-slate-200">
+            ${data.name || 'Notanish'}
+            ${!isDenied ? `<span class="ml-2 text-[10px] font-bold ${isExit ? 'text-blue-400' : 'text-emerald-400'}">${isExit ? 'CHIQDI' : 'KIRDI'}</span>` : ''}
+          </h4>
+          <p class="text-[10px] text-slate-500 font-mono">UID: ${data.uid || 'noma\'lum'}</p>
+        </div>
+      </div>
+      <span class="text-[10px] text-slate-400">${time}</span>
+    </div>
+  `;
+
+  container.prepend(logDiv);
+  lucide.createIcons();
+  if (container.children.length > 30) container.lastElementChild.remove();
+}
+
+async function loadLastLogs() {
+  try {
+    const r = await fetch(`${RFID_API}/logs?limit=15`);
+    const payload = await r.json();
+    const logs = payload?.ok && Array.isArray(payload.data) ? payload.data : [];
+        console.log('📊 Logs (debug):', logs); // 👈 BU QISMINI QO'SHING
+
+    // ✅ LOG VIEWNI TOZALASH VA QO'SHISH
+    const container = document.getElementById('logs-container');
+    container.innerHTML = '';
+    logs.reverse().forEach(log => appendLog(log));
+
+    // ✅ STATISTIKANI QAYTA HISOBLASH
+    const deniedCount = logs.filter(log => 
+        log.status === 'denied' &&
+        log.note.includes('card_not_registered') &&
+        !log.note.includes('blocked') &&
+        log.blocked_at == null
+    ).length;
+
+    const old = parseInt(document.getElementById('stat-denied-count').textContent) || 0;
+    if (old !== deniedCount) {
+      animateValue("stat-denied-count", old, deniedCount, 300);
     }
 
-    const logDiv = document.createElement('div');
-  const statusClass = isDenied
-  ? 'border-rose-500 bg-rose-500/5'
-  : isExit
-    ? 'border-blue-500 bg-blue-500/5'
-    : 'border-emerald-500 bg-emerald-500/5';
-    
-    logDiv.className = `p-3 rounded-xl border-l-4 ${statusClass} animate-fadeIn`;
-logDiv.innerHTML = `
-  <div class="flex justify-between items-start">
-    <div class="flex items-center gap-3">
-      <i
-        data-lucide="${
-          isDenied
-            ? 'shield-alert'
-            : isExit
-              ? 'log-out'
-              : 'log-in'
-        }"
-        class="w-4 h-4 ${
-          isDenied
-            ? 'text-rose-400'
-            : isExit
-              ? 'text-blue-400'
-              : 'text-emerald-400'
-        }"
-      ></i>
+  } catch (e) {
+    console.error('Logs load error', e);
+    document.getElementById('stat-denied-count').textContent = '0';
+  }
+}
 
-      <div>
-        <h4 class="text-sm font-semibold text-slate-200">
-          ${log.name || 'Notanish'}
-          ${
-            !isDenied
-              ? `<span class="ml-2 text-[10px] font-bold ${
-                  isExit ? 'text-blue-400' : 'text-emerald-400'
-                }">
-                  ${isExit ? 'CHIQDI' : 'KIRDI'}
-                </span>`
-              : ''
+async function loadInsideCount() {
+  try {
+    const r = await fetch(`${RFID_API}/inside`);
+    const payload = await r.json();
+
+    const value = Number(payload?.inside);
+    insideCount = Number.isFinite(value) ? value : 0;
+
+    animateValue("stat-inside-count", 0, insideCount, 600);
+  } catch (e) {
+    console.error('Inside load error', e);
+    insideCount = 0;
+  }
+}
+
+
+  async function loadTodayChart() {
+    try {
+      const r = await fetch(`${RFID_API}/stats/today`);
+      const payload = await r.json();
+      if (!payload) return;
+
+      const ctx = document.getElementById('entryChart').getContext('2d');
+      if (entryChart) entryChart.destroy();
+
+      entryChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: payload.labels,
+          datasets: [{
+            label: 'Kirishlar',
+            data: payload.data,
+            tension: 0.4,
+            fill: true,
+            borderColor: '#34d399',
+            backgroundColor: 'rgba(52,211,153,0.1)',
+            pointRadius: 4,
+            pointBackgroundColor: '#34d399'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 10 } } },
+            y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8', font: { size: 10 } } }
           }
-        </h4>
+        }
+      });
+    } catch (e) { console.error('Chart load error', e); }
+  }
 
-        <p class="text-[10px] text-slate-500 font-mono">
-          UID: ${log.uid}
-        </p>
+  async function reloadChart() {
+    const date = document.getElementById('selectedDate').value;
+    if (!date) return;
+    try {
+      const r = await fetch(`${RFID_API}/stats/by-date?date=${date}`);
+      const payload = await r.json();
+      if (entryChart && payload) {
+        entryChart.data.labels = payload.labels;
+        entryChart.data.datasets[0].data = payload.data;
+        entryChart.update();
+      }
+    } catch (e) { showToast("Sana bo'yicha yuklab bo'lmadi", "error"); }
+  }
+
+  async function loadBlockedUids() {
+  try {
+    const res = await fetch(`${API}/blocked`);
+    const payload = await res.json();
+    const list = document.getElementById('blocked-list');
+    
+    if (!payload?.data?.length) {
+      list.innerHTML = '<p class="text-slate-500 text-sm italic">Bloklangan karta yo‘q</p>';
+      return;
+    }
+
+    list.innerHTML = payload.data.map(b => `
+      <div class="flex justify-between items-center p-3 bg-rose-500/10 rounded-lg border border-rose-500/20">
+        <div>
+          <div class="font-mono text-sm text-rose-400">${b.uid}</div>
+          <div class="text-xs text-slate-400">${b.attempts} urinish</div>
+        </div>
+        <button onclick="unblockUid('${b.uid}')" class="text-slate-400 hover:text-white p-1">
+          <i data-lucide="unlock" class="w-4 h-4"></i>
+        </button>
       </div>
-    </div>
-
-    <span class="text-[10px] text-slate-400">
-      ${time}
-    </span>
-  </div>
-`;
-
-    container.prepend(logDiv);
+    `).join('');
+    
     lucide.createIcons();
-    if (container.children.length > 50) container.lastElementChild.remove();
-  }
+     recalculateDeniedCount();
 
-  function clearLogs() {
-    document.getElementById('logs-container').innerHTML = '';
+  } catch (e) {
+    console.error('Failed to load blocked UIDs', e);
   }
+}
 
-  function animateValue(id, start, end, duration) {
-    const obj = document.getElementById(id);
-    if (!obj) return;
-    let startTimestamp = null;
-    const step = (timestamp) => {
-      if (!startTimestamp) startTimestamp = timestamp;
-      const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-      obj.innerHTML = Math.floor(progress * (end - start) + start);
-      if (progress < 1) window.requestAnimationFrame(step);
-    };
-    window.requestAnimationFrame(step);
+async function unblockUid(uid) {
+  if (!confirm(`"${uid}" blokini olib tashlamoqchimisiz?`)) return;
+  try {
+    const res = await fetch(`${API}/blocked/${uid}`, { method: 'DELETE' });
+    if (res.ok) {
+      showToast("Blok olib tashlandi");
+      loadBlockedUids();
+    } else {
+      showToast("Blokdan chiqarib bo'lmadi", "error");
+    }
+  } catch (e) {
+    showToast("Xatolik", "error");
+  }
+}
+
+
+function clearLogs() {
+  document.getElementById('logs-container').innerHTML = '';
+  currentLogsCount = 0;
+  document.getElementById('stat-entries-count').textContent = '0';
+  document.getElementById('stat-denied-count').textContent = '0'; // oddiy sozlash
+  document.getElementById('entries-bar').style.width = '0%';
+}
+
+  async function testScan() {
+    const uidInput = document.getElementById('testUid');
+    const uid = uidInput.value.trim();
+    if (!uid) return showToast("UID kiriting", "error");
+
+    try {
+      const r = await fetch(RFID_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ uid })
+      });
+      if (r.ok) {
+        showToast("Skanerlandi");
+        uidInput.value = '';
+      } else {
+        showToast("Rad etildi", "error");
+      }
+    } catch (e) { showToast("API aloqa xatosi", "error"); }
   }
 
   window.onload = () => {
     loadUsers();
+    loadLastLogs();
+    loadInsideCount();
+    loadTodayChart();
     setupSSE();
     lucide.createIcons();
   };

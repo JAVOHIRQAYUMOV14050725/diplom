@@ -45,6 +45,62 @@ exports.logs = async (req, res) => {
     }
 };
 
+// 🔢 Inside count
+exports.inside = async (_, res) => {
+    try {
+        const inside = await repo.getInsideCount();
+        return res.json({ ok: true, inside });
+    } catch (e) {
+        console.error(e);
+        return res.status(500).json({ ok: false, error: 'internal_error' });
+    }
+};
+
+// 📊 Today entry stats
+exports.todayStats = async (_, res) => {
+    try {
+        const stats = await repo.getTodayEntryStats();
+        return res.json(stats);
+    } catch (e) {
+        console.error(e);
+        return res.status(500).json({ ok: false, error: 'internal_error' });
+    }
+};
+exports.statsByDate = async (req, res) => {
+    try {
+        const date = req.query.date;
+        if (!date) return res.status(400).json({ error: 'date_required' });
+
+        const stats = await repo.getEntryStatsByDate(date);
+        return res.json(stats);
+    } catch (e) {
+        res.status(500).json({ error: 'internal_error' });
+    }
+};
+
+
+
+exports.list = async (_, res) => {
+    try {
+        const blocked = await repo.getBlockedUids();
+        res.json({ ok: true, data: blocked });
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ ok: false, error: 'internal_error' });
+    }
+};
+
+exports.unblock = async (req, res) => {
+    const { uid } = req.params;
+    try {
+        const success = await repo.unblockUid(uid);
+        if (!success) return res.status(404).json({ ok: false, error: 'uid_not_blocked' });
+        res.json({ ok: true });
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ ok: false, error: 'internal_error' });
+    }
+};
 // Simple admin login for the UI (uses ENV ADMIN_USER / ADMIN_PASS)
 exports.login = async (req, res) => {
     const { username, password } = req.body;

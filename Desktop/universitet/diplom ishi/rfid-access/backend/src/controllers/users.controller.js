@@ -10,10 +10,17 @@ exports.list = async (_, res) => {
     }
 };
 
+// users.controller.js
 exports.create = async (req, res) => {
     try {
         const { uid, name, role } = req.body;
         if (!uid) return res.status(400).json({ ok: false, error: 'uid_required' });
+
+        // UID mavjudligini tekshirish
+        const existingUsers = await repo.getUsers();
+        if (existingUsers.some(u => u.uid === uid)) {
+            return res.status(400).json({ ok: false, error: 'uid_already_exists' });
+        }
 
         const created = await repo.createUser({ uid, name, role });
         return res.status(201).json({ ok: true, data: created });
@@ -22,6 +29,7 @@ exports.create = async (req, res) => {
         res.status(500).json({ ok: false, error: 'internal_error' });
     }
 };
+
 
 exports.remove = async (req, res) => {
     try {
