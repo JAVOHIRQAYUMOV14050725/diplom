@@ -1,0 +1,38 @@
+body {
+    background-color: #020617;
+    background-image:
+        radial-gradient(at 0% 0%, rgba(56, 189, 248, 0.15) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(139, 92, 246, 0.15) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(236, 72, 153, 0.1) 0px, transparent 50%);
+    background-attachment: fixed;
+    color: #e2e8f0;
+}
+
+.glass-panel {
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-panel:hover {
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+.glass-input {
+    background: rgba(30, 41, 59, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    color: white;
+    transition: all 0.3s ease;
+}
+
+.glass-input:focus {
+    background: rgba(30, 41, 59, 0.8);
+    border-color: #8b5cf6;
+    box-shadow: 0 0 15px rgba(139, 92, 246, 0.3);
+    outline: none;
+}
+
+.text-glow {
+    text-shadow: 0 0 20px rgba(139, 92, 246, 0.5);
+}

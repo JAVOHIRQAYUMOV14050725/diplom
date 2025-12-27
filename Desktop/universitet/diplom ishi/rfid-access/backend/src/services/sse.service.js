@@ -27,11 +27,9 @@ function pushEvent(type, data) {
         try {
             res.write(
                 `event: ${type}\n` +
-                `data: ${JSON.stringify({ row: data })}\n\n` // ✅ bitta { row }
+                `data: ${JSON.stringify(data)}\n\n`  // ❗ row ni olib tashladik
             );
-        } catch (e) {
-            // ignore
-        }
+        } catch (e) { }
     }
 }
 

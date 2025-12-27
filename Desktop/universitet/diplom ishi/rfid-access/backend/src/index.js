@@ -6,21 +6,25 @@ const path = require('path');
 dotenv.config();
 
 const app = express();
+
 app.use(cors());
 app.use(express.json());
 
+// API
 app.use('/api', require('./routes'));
 
-app.use('/admin', express.static(path.join(__dirname, 'admin')));
-app.get('/login', (_, res) =>
-    res.sendFile(path.join(__dirname, 'admin', 'login.html'))
-);
-app.get('/', (_, res) =>
-    res.sendFile(path.join(__dirname, 'admin', 'index.html'))
-);
+// 🔥 FRONTEND (public)
+const PUBLIC_DIR = path.join(__dirname, '..', '..', 'public');
+app.use(express.static(PUBLIC_DIR));
 
+// Root → index.html
+app.get('/', (_, res) => {
+    res.sendFile(path.join(PUBLIC_DIR, 'index.html'));
+});
+
+// Health
 app.get('/health', (_, res) => res.json({ ok: true }));
 
-app.listen(3000, () =>
-    console.log('RFID backend running on port 3000')
-);
+app.listen(3000, () => {
+    console.log('RFID backend running on port 3000');
+});

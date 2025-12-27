@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RFID PRO | Next Gen Dashboard</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/glass.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        dark: { 900: '#020617', 800: '#0f172a', 700: '#1e293b' },
+                        neon: { purple: '#8b5cf6', blue: '#3b82f6', cyan: '#06b6d4', pink: '#ec4899' }
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'fade-in': 'fadeIn 0.4s ease-out forwards',
+                    },
+                    keyframes: {
+                        float: { '0%, 100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-10px)' } },
+                        fadeIn: { 'from': { opacity: '0', transform: 'translateY(10px)' }, 'to': { opacity: '1', transform: 'translateY(0)' } }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="min-h-screen selection:bg-neon-purple selection:text-white overflow-x-hidden">
+
+    <!-- Background Decoration -->
+    <div class="fixed top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
+        <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/20 rounded-full blur-[120px] animate-pulse-slow"></div>
+        <div class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-600/20 rounded-full blur-[120px] animate-pulse-slow" style="animation-delay: 2s;"></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="sticky top-4 z-50 px-4 md:px-6 mb-8">
+        <div class="glass-panel rounded-2xl px-6 py-4 flex justify-between items-center max-w-7xl mx-auto">
+            <div class="flex items-center gap-4">
+                <div class="relative group">
+                    <div class="absolute -inset-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg blur opacity-40 group-hover:opacity-100 transition duration-200"></div>
+                    <div class="relative bg-dark-900 p-2.5 rounded-lg border border-white/10">
+                        <i data-lucide="cpu" class="text-white w-6 h-6"></i>
+                    </div>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold tracking-tight text-white">RFID <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400 text-glow">PRO</span></h1>
+                    <p class="text-[10px] text-slate-400 uppercase tracking-widest font-semibold">Tizim holati: <span class="text-emerald-400">ONLINE</span></p>
+                </div>
+            </div>
+            
+            <div class="hidden md:flex items-center gap-4">
+                <div class="group relative">
+                    <input id="testUid" type="text" placeholder="UID testlash..." class="glass-input pl-10 pr-4 py-2.5 rounded-xl text-sm w-64 font-mono placeholder-slate-500">
+                    <i data-lucide="scan" class="w-4 h-4 absolute left-3 top-3 text-slate-400 group-hover:text-blue-400 transition-colors"></i>
+                </div>
+                <button id="btn-test-scan" class="relative overflow-hidden group bg-blue-600 hover:bg-blue-500 text-white px-6 py-2.5 rounded-xl transition-all duration-300 shadow-[0_0_20px_rgba(37,99,235,0.3)] hover:shadow-[0_0_30px_rgba(37,99,235,0.5)]">
+                    <span class="relative z-10 flex items-center gap-2 font-medium">
+                        <i data-lucide="zap" class="w-4 h-4 fill-current"></i> Test
+                    </span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-4 md:px-6 pb-12 space-y-8">
+        <!-- Stats Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div class="glass-panel p-6 rounded-3xl relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300">
+                <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><i data-lucide="users" class="w-24 h-24 text-white"></i></div>
+                <div class="relative z-10">
+                    <p class="text-sm text-slate-400 font-medium mb-1">Foydalanuvchilar</p>
+                    <h3 id="stat-users-count" class="text-4xl font-bold text-white font-mono tracking-tighter">0</h3>
+                </div>
+            </div>
+
+            <div class="glass-panel p-6 rounded-3xl relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300">
+                <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><i data-lucide="activity" class="w-24 h-24 text-emerald-400"></i></div>
+                <div class="relative z-10">
+                    <p class="text-sm text-slate-400 font-medium mb-1">Bugungi Kirishlar</p>
+                    <h3 id="stat-entries-count" class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-300 to-emerald-500 font-mono tracking-tighter">0</h3>
+                    <div class="mt-4 w-full bg-slate-800/50 rounded-full h-1.5 overflow-hidden">
+                        <div class="bg-emerald-500 h-full w-[0%]" id="entries-bar" style="transition: width 1s ease;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-panel p-6 rounded-3xl relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300">
+                <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><i data-lucide="users-round" class="w-24 h-24 text-cyan-400"></i></div>
+                <div class="relative z-10">
+                    <p class="text-sm text-slate-400 font-medium mb-1">Ichkarida</p>
+                    <h3 id="stat-inside-count" class="text-4xl font-bold text-cyan-400 font-mono tracking-tighter">0</h3>
+                </div>
+            </div>
+
+            <div class="glass-panel p-6 rounded-3xl relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300">
+                <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><i data-lucide="shield-alert" class="w-24 h-24 text-rose-500"></i></div>
+                <div class="relative z-10">
+                    <p class="text-sm text-slate-400 font-medium mb-1">Rad Etilganlar</p>
+                    <h3 id="stat-denied-count" class="text-4xl font-bold text-rose-400 font-mono tracking-tighter">0</h3>
+                </div>
+            </div>
+            
+            <div class="lg:col-span-4 glass-panel rounded-3xl p-6">
+                <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
+                    <i data-lucide="ban" class="text-rose-500"></i> Bloklangan Kartalar
+                </h2>
+                <div id="blocked-list" class="space-y-3 max-h-96 overflow-y-auto"></div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <div class="lg:col-span-8 space-y-8">
+                <!-- Add User Form -->
+                <div class="glass-panel p-8 rounded-3xl relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500"></div>
+                    <div class="flex items-center gap-3 mb-8">
+                        <div class="p-3 rounded-xl bg-gradient-to-br from-purple-600/20 to-blue-600/20 border border-white/10">
+                            <i data-lucide="user-plus" class="text-purple-400"></i>
+                        </div>
+                        <h2 class="text-xl font-bold text-white">Yangi Foydalanuvchi</h2>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                        <div class="md:col-span-3">
+                            <input id="uid" type="text" placeholder="UID" class="glass-input w-full h-12 rounded-xl px-4 font-mono text-sm">
+                        </div>
+                        <div class="md:col-span-4">
+                            <input id="name" type="text" placeholder="To'liq ism" class="glass-input w-full h-12 rounded-xl px-4 text-sm">
+                        </div>
+                        <div class="md:col-span-3">
+                            <select id="role" class="glass-input w-full h-12 rounded-xl px-4 text-sm cursor-pointer">
+                                <option value="" class="bg-dark-900">Rolni tanlang</option>
+                                <option value="student" class="bg-dark-900 text-white">🎓 Talaba</option>
+                                <option value="teacher" class="bg-dark-900 text-white">👨‍🏫 O'qituvchi</option>
+                                <option value="staff" class="bg-dark-900 text-white">💼 Xodim</option>
+                                <option value="admin" class="bg-dark-900 text-white">🛡️ Admin</option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-2">
+                            <button id="btn-add-user" class="w-full h-12 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-medium shadow-lg hover:brightness-110 active:scale-95 flex items-center justify-center">
+                                <i data-lucide="save" class="w-5 h-5"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chart -->
+                <div class="glass-panel p-6 rounded-3xl">
+                    <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+                        <h3 class="text-sm text-slate-400">Bugungi kirishlar grafikasi</h3>
+                        <div class="flex gap-2">
+                            <input type="date" id="selectedDate" class="glass-input px-3 py-1.5 rounded-lg text-xs">
+                            <button id="btn-reload-chart" class="bg-blue-600 px-4 py-1.5 rounded-lg text-xs font-medium hover:bg-blue-500 transition">Qo‘llash</button>
+                        </div>
+                    </div>
+                    <div class="h-[250px]"><canvas id="entryChart"></canvas></div>
+                </div>
+
+                <!-- Database Table -->
+                <div class="glass-panel rounded-3xl overflow-hidden min-h-[400px]">
+                    <div class="p-6 border-b border-white/5 flex justify-between items-center bg-white/5">
+                        <h2 class="text-lg font-bold flex items-center gap-3 text-white">
+                            <i data-lucide="database" class="text-blue-400"></i>
+                            <span>Baza Reyestri</span>
+                            <select id="roleFilter" class="glass-input rounded-xl px-3 py-1.5 text-xs">
+                                <option value="">Barchasi</option>
+                                <option value="student">Talaba</option>
+                                <option value="teacher">O‘qituvchi</option>
+                                <option value="staff">Xodim</option>
+                                <option value="admin">Admin</option>
+                            </select>
+                        </h2>
+                        <button id="btn-refresh-users" class="p-2 rounded-lg hover:bg-white/5 text-slate-400 hover:text-white transition group">
+                            <i data-lucide="refresh-cw" class="w-5 h-5 group-hover:rotate-180 transition-transform duration-500"></i>
+                        </button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead>
+                                <tr class="text-slate-400 text-xs uppercase tracking-wider border-b border-white/5">
+                                    <th class="px-6 py-4 font-medium">UID</th>
+                                    <th class="px-6 py-4 font-medium">Ism</th>
+                                    <th class="px-6 py-4 font-medium">Rol</th>
+                                    <th class="px-6 py-4 font-medium text-right">Amallar</th>
+                                </tr>
+                            </thead>
+                            <tbody id="users-tbody" class="divide-y divide-white/5 text-sm"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Live Logs Sidebar -->
+            <div class="lg:col-span-4 space-y-4">
+                <div class="glass-panel rounded-3xl overflow-hidden sticky top-24 border-t-4 border-t-emerald-500 flex flex-col h-[calc(100vh-8rem)]">
+                    <div class="p-5 bg-gradient-to-b from-emerald-500/10 to-transparent border-b border-white/5 flex justify-between items-center">
+                        <h2 class="text-white font-bold flex items-center gap-2 text-lg">
+                            <span class="relative flex h-3 w-3">
+                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                            </span>
+                            Jonli Monitoring
+                        </h2>
+                        <div class="flex items-center gap-2">
+                            <select id="logRoleFilter" class="glass-input text-[10px] px-2 py-1 rounded-md">
+                                <option value="">Filtr</option>
+                                <option value="student">Talaba</option>
+                                <option value="teacher">O'qituvchi</option>
+                            </select>
+                            <button id="btn-clear-logs" class="text-[10px] uppercase tracking-wider text-slate-500 hover:text-white border border-slate-700 px-2 py-1 rounded">Tozalash</button>
+                        </div>
+                    </div>
+                    <div id="logs-container" class="flex-1 overflow-y-auto p-4 space-y-3"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="toast-container" class="fixed bottom-6 right-6 z-[9999] flex flex-col gap-3 pointer-events-none"></div>
+
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>

@@ -57,27 +57,53 @@ exports.inside = async (_, res) => {
 };
 
 // 📊 Today entry stats
+/**
+ * 📊 Bugungi kun entry statistikasi (soatlar bo‘yicha)
+ */
 exports.todayStats = async (_, res) => {
     try {
         const stats = await repo.getTodayEntryStats();
-        return res.json(stats);
+
+        return res.json({
+            ok: true,
+            labels: stats.labels,
+            data: stats.data
+        });
     } catch (e) {
         console.error(e);
-        return res.status(500).json({ ok: false, error: 'internal_error' });
+        return res.status(500).json({
+            ok: false,
+            error: 'internal_error'
+        });
     }
 };
+
+/**
+ * 📅 Sana bo‘yicha entry statistikasi
+ * ?date=2025-01-27
+ */
 exports.statsByDate = async (req, res) => {
     try {
-        const date = req.query.date;
-        if (!date) return res.status(400).json({ error: 'date_required' });
+        const { date } = req.query;
+        if (!date) {
+            return res.status(400).json({ ok: false, error: 'date_required' });
+        }
 
         const stats = await repo.getEntryStatsByDate(date);
-        return res.json(stats);
+
+        return res.json({
+            ok: true,
+            labels: stats.labels,
+            data: stats.data
+        });
     } catch (e) {
-        res.status(500).json({ error: 'internal_error' });
+        console.error(e);
+        return res.status(500).json({
+            ok: false,
+            error: 'internal_error'
+        });
     }
 };
-
 
 
 exports.list = async (_, res) => {
