@@ -7,24 +7,16 @@ const DUPLICATE_INTERVAL_MS = 3000;
 const MAX_ATTEMPTS = 5;
 
 /**
- * 📡 RFID karta skan qilish
+ * 📡 RFID karta skan qilish (IDEAL LOGIC)
  */
 async function handleScan(uid) {
 
     /* ======================================================
-       🔒 1. BLOCKED UID
+       🔒 1. ALLAQACHON BLOCKLANGAN UID
+       → faqat informational (LOG YO‘Q)
     ====================================================== */
     const isBlocked = await repo.checkBlocked(uid);
     if (isBlocked) {
-        const inserted = await repo.insertLog({
-            uid,
-            userId: null,
-            action: null,
-            status: 'denied',
-            note: 'uid_blocked'
-        });
-
-        sse.pushEvent('denied', { row: inserted });
         return {
             ok: false,
             error: 'uid_blocked',
@@ -38,37 +30,47 @@ async function handleScan(uid) {
     const user = await repo.findUserByUid(uid);
 
     /* ======================================================
-       ⛔ 3. NOT REGISTERED CARD
+       ⛔ 3. NOT REGISTERED CARD (IDEAL MODEL)
     ====================================================== */
     if (!user) {
-        console.log('🔍 NOT REGISTERED UID:', JSON.stringify(uid)); // ✅ DEBUG
-
         const attempts = await repo.incrementAttempt(uid);
-        console.log('🔢 attempts:', attempts, 'for UID:', uid); // ✅ DEBUG
 
-        if (attempts >= MAX_ATTEMPTS) {
-            console.log('🔒 Bloklash bajarilmoqda...');
-
-            await repo.blockUid(uid);
+        // ❗ 1–4: faqat sanaymiz, LOG YO‘Q
+        if (attempts < MAX_ATTEMPTS) {
+            return {
+                ok: false,
+                error: 'card_not_registered',
+                status: 403,
+                attempts
+            };
         }
 
-        const inserted = await repo.insertLog({
-            uid,
-            userId: null,
-            action: null,
-            status: 'denied',
-            note: attempts >= MAX_ATTEMPTS
-                ? 'card_not_registered_blocked'
-                : 'card_not_registered'
-        });
+        // 🔒 5-urinish: BLOCK + 1 TA LOG
+        if (attempts === MAX_ATTEMPTS) {
+            await repo.blockUid(uid);
 
-        
+            const inserted = await repo.insertLog({
+                uid,
+                userId: null,
+                action: null,
+                status: 'denied',
+                note: 'card_not_registered_blocked'
+            });
 
-        sse.pushEvent('denied', { row: inserted });
+            // 🔥 ADMIN GA SIGNAL
+            sse.pushEvent('denied', { row: inserted });
 
+            return {
+                ok: false,
+                error: 'card_blocked',
+                status: 403
+            };
+        }
+
+        // 🔕 6+ urinish: jim (LOG YO‘Q)
         return {
             ok: false,
-            error: 'card_not_registered',
+            error: 'uid_blocked',
             status: 403
         };
     }
@@ -88,7 +90,7 @@ async function handleScan(uid) {
             : 'entry';
 
     /* ======================================================
-       🔁 6. DUPLICATE GUARD
+       🔁 6. DUPLICATE GUARD (LOG BOR)
     ====================================================== */
     if (last?.timestamp) {
         const lastTs = new Date(last.timestamp).getTime();
@@ -102,6 +104,7 @@ async function handleScan(uid) {
                 status: 'denied',
                 note: `duplicate_${nextAction}`
             });
+
             sse.pushEvent('denied', { row: inserted });
 
             return {
@@ -111,7 +114,6 @@ async function handleScan(uid) {
             };
         }
     }
-
 
     /* ======================================================
        ✅ 7. NORMAL ENTRY / EXIT
@@ -124,9 +126,8 @@ async function handleScan(uid) {
         note: user.name
     });
 
-    // 🔥 ASOSIY MUHIM QATOR (frontend log event)
+    // 🔥 FRONTEND LOG
     sse.pushEvent('log', { row: inserted });
-
 
     /* ======================================================
        👥 8. INSIDE COUNT (REALTIME)

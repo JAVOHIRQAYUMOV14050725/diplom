@@ -43,13 +43,20 @@ export const api = {
     },
 
     async fetchBlocked() {
-        const response = await fetch(`${config.API_BASE}/blocked`);
+        const response = await fetch(`${config.RFID_API}/blocked`);
+        if (!response.ok) {
+            const text = await response.text();
+            throw new Error(`fetchBlocked failed: ${text}`);
+        }
         return response.json();
     },
 
-    async unblockUid(uid) {
-        return fetch(`${config.API_BASE}/blocked/${uid}`, { method: 'DELETE' });
+async unblockUid(uid) {
+        return fetch(`${config.RFID_API}/blocked/${uid}`, {
+            method: 'DELETE'
+        });
     },
+
 
     async testScan(uid) {
         const res = await fetch(`${config.RFID_API}`, { // 👈 /api/rfid

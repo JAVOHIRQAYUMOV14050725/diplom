@@ -39,6 +39,28 @@ async function loadUsers() {
     }
 }
 
+async function loadTodayEntriesCount() {
+    try {
+        const payload = await api.fetchTodayStats();
+
+        if (!payload?.data || !Array.isArray(payload.data)) return;
+
+        const total = payload.data.reduce((sum, n) => sum + Number(n || 0), 0);
+
+        const old = Number(elements.entriesCount.textContent) || 0;
+        if (old !== total) {
+            ui.animateValue(elements.entriesCount, old, total, 400);
+        }
+
+        // progress bar (optional)
+        const percent = Math.min(100, total * 5);
+        elements.entriesBar.style.width = `${percent}%`;
+
+    } catch (e) {
+        console.error('Today entries load error', e);
+    }
+}
+
 async function loadChart() {
     try {
         const payload = await api.fetchTodayStats();
@@ -168,17 +190,22 @@ async function recalculateDeniedCount() {
 
         const deniedCount = logs.filter(log =>
             log.status === 'denied' &&
-            log.note.includes('card_not_registered') &&
-            !log.note.includes('blocked') &&
-            log.blocked_at == null
+            (
+                log.note === 'card_not_registered' ||
+                log.note === 'card_not_registered_blocked' ||
+                log.note === 'uid_blocked'
+            )
         ).length;
 
         const old = Number(elements.deniedCount.textContent) || 0;
-        if (old !== deniedCount) ui.animateValue(elements.deniedCount, old, deniedCount, 300);
+        if (old !== deniedCount) {
+            ui.animateValue(elements.deniedCount, old, deniedCount, 300);
+        }
     } catch (e) {
         console.error('Denied recalc error', e);
     }
 }
+
 
 /* ---------------- INIT ---------------- */
 
@@ -189,13 +216,16 @@ window.addEventListener('DOMContentLoaded', async () => {
         loadLastLogs(),
         loadInsideCount(),
         loadBlockedUids(),
-        loadChart()
+        loadChart(),
+        loadTodayEntriesCount()
     ]);
 
     sse.init(
-        hour => chartReady && charts.update(hour),
-        recalculateDeniedCount
+        hour => chartReady && charts.update(hour), // chart update
+        recalculateDeniedCount,                    // denied counter
+        loadBlockedUids                             // 🔥 BLOCKED LIST
     );
+
 
     document.getElementById('btn-add-user').addEventListener('click', addUser);
     document.getElementById('btn-refresh-users').addEventListener('click', loadUsers);
